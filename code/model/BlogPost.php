@@ -225,34 +225,26 @@ class BlogPost extends Page {
 			// Get categories and tags
 			$parent = $self->Parent();
 			$categories = $parent instanceof Blog
-				? $parent->Categories()
-				: BlogCategory::get();
-			$tags = $parent instanceof Blog
-				? $parent->Tags()
-				: BlogTag::get();
+				? $parent->Categories()->exclude('CatID', 0)
+				: BlogCategory::get()->exclude('CatID', 0);
 
 			$options = BlogAdminSidebar::create(
 				$publishDate,
 				$urlSegment,
-				TagField::create(
+				$catField = TagField::create(
 					'Categories',
 					_t('BlogPost.Categories', 'Categories'),
 					$categories,
-					$self->Categories()
+					$self->Categories(),
+					$exclusions = array('CatID' => 0)
 				)
 					->setCanCreate($self->canCreateCategories())
-					->setShouldLazyLoad(true),
-				TagField::create(
-					'Tags',
-					_t('BlogPost.Tags', 'Tags'),
-					$tags,
-					$self->Tags()
-				)
-					->setCanCreate($self->canCreateTags())
 					->setShouldLazyLoad(true),
 				$authorField,
 				$authorNames
 			)->setTitle('Post Options');
+			
+			$catField->setDescription('Parent Categories shouldn\'t be added. They will be removed on save');
 
 			$fields->insertBefore($options, 'Root');
 		});
@@ -630,6 +622,14 @@ class BlogPost extends Page {
 		if(!$this->exists() && ($member = Member::currentUser())) {
 			$this->Authors()->add($member);
 		}
+		
+		/*
+foreach($this->Categories() as $cat) {
+			if ($cat->Cat()->ID == 0) {
+				$this->Categories()->removeByID($cat->ID);
+			}
+		}
+*/
 	}
 }
 
