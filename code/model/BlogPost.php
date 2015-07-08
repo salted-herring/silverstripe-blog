@@ -227,19 +227,30 @@ class BlogPost extends Page {
 			$categories = $parent instanceof Blog
 				? $parent->Categories()->exclude('CatID', 0)
 				: BlogCategory::get()->exclude('CatID', 0);
+				
+			$list = array();
+			
+			foreach($categories->sort('CatID, Title ASC') as $cat) {
+				$list[$cat->ID] = sprintf('%s/%s', $cat->Cat()->Title, $cat->Title);
+			}
+			
+			$val = '';
+			if ($this->Categories()->count() > 0) {
+				$val = $this->Categories()->first()->ID;
+			}
 
 			$options = BlogAdminSidebar::create(
 				$publishDate,
 				$urlSegment,
-				$catField = TagField::create(
-					'Categories',
-					_t('BlogPost.Categories', 'Categories'),
-					$categories,
-					$self->Categories(),
-					$exclusions = array('CatID' => 0)
+				$catField = DropDownField::create(
+					'Category',
+					'Category',
+					$list,
+					$value = $val
+// 					$self->Categories(),
+// 					$exclusions = array('CatID' => 0)
 				)
-					->setCanCreate($self->canCreateCategories())
-					->setShouldLazyLoad(true),
+				->setEmptyString('(select one)'),
 				$authorField,
 				$authorNames
 			)->setTitle('Post Options');
@@ -621,13 +632,14 @@ class BlogPost extends Page {
 			$this->Authors()->add($member);
 		}
 		
-		/*
-foreach($this->Categories() as $cat) {
-			if ($cat->Cat()->ID == 0) {
-				$this->Categories()->removeByID($cat->ID);
-			}
-		}
-*/
+		//
+		// Remove the cats & add in the current - this is a hack to override
+		// the blog's set up to use multiple categories. We want only 1.
+		//
+		$currentCat = Controller::curr()->getRequest()->postVar('Category');
+		$this->Categories()->removeAll();
+
+		$this->Categories()->add($currentCat);
 	}
 }
 
