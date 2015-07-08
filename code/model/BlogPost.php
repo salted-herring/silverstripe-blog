@@ -243,8 +243,6 @@ class BlogPost extends Page {
 				$authorField,
 				$authorNames
 			)->setTitle('Post Options');
-			
-			$catField->setDescription('Parent Categories shouldn\'t be added. They will be removed on save');
 
 			$fields->insertBefore($options, 'Root');
 		});

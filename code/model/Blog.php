@@ -117,7 +117,7 @@ class Blog extends Page implements PermissionProvider {
 			$categories = GridField::create(
 				'Categories',
 				_t('Blog.Categories', 'Categories'),
-				$self->Categories(),
+				$self->Categories()->filter('CatID', 0),
 				GridFieldCategorisationConfig::create(15, $self->Categories()->sort('Title'), 'BlogCategory', 'Categories', 'BlogPosts')
 			);
 
@@ -477,6 +477,21 @@ class Blog extends Page implements PermissionProvider {
 		$this->extend('updateGetBlogPosts', $blogPosts);
 
 		return $blogPosts;
+	}
+	
+	/**
+	 * Return latest blog post.
+	 *
+	 * @return singel blog post
+	 */
+	public function getLatestPost() {
+		$posts = BlogPost::get()->filter('ParentID', $this->ID);
+		
+		if ($posts->count() > 0) {
+			return $posts->first();
+		}
+		
+		return false;
 	}
 
 	/**
