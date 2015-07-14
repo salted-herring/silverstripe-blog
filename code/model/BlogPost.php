@@ -639,7 +639,10 @@ class BlogPost extends Page {
 		$currentCat = Controller::curr()->getRequest()->postVar('Category');
 		$this->Categories()->removeAll();
 
-		$this->Categories()->add($currentCat);
+		if ($currentCat) {
+			$this->Categories()->add($currentCat);
+		}
+		
 	}
 }
 
